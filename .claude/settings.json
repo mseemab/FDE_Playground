@@ -1,5 +1,61 @@
 {
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(pnpm dev *)",
+      "Bash(pnpm build *)",
+      "Bash(pnpm lint *)",
+      "Bash(pnpm typecheck *)",
+      "Bash(pnpm test *)",
+      "Bash(pnpm test:e2e *)",
+      "Bash(pnpm check *)",
+      "Bash(pnpm check:affected *)",
+      "Bash(pnpm check:repo *)",
+      "Bash(pnpm check:rls *)",
+      "Bash(pnpm format *)",
+      "Bash(pnpm format:check *)",
+      "Bash(pnpm new-project *)",
+      "Bash(pnpm turbo run *)",
+      "Bash(pnpm exec turbo run *)",
+      "Bash(turbo run *)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git branch *)",
+      "Bash(git switch *)",
+      "Bash(git log *)",
+      "Bash(gh pr create *)",
+      "Bash(gh pr view *)"
+    ],
+    "deny": [
+      "Read(.env*)",
+      "Read(!.env.example)",
+      "Bash(git push origin main)",
+      "Bash(git push origin main *)",
+      "Bash(git push * origin main)",
+      "Bash(git push * HEAD:main)",
+      "Bash(git push origin master)",
+      "Bash(git push --force *)",
+      "Bash(git push -f *)",
+      "Bash(git push * --force *)",
+      "Bash(git push * -f *)",
+      "Bash(git push --force-with-lease *)",
+      "Bash(gh pr merge *)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Bash(rm -rf ..*)",
+      "Bash(rm -rf $HOME*)",
+      "Bash(supabase link *)",
+      "Bash(supabase db push *)",
+      "Bash(supabase db pull *)",
+      "Bash(supabase functions deploy *)",
+      "Bash(supabase secrets *)",
+      "Bash(supabase * --linked *)",
+      "Bash(supabase * --db-url *)",
+      "Bash(supabase * --project-ref *)"
+    ]
+  },
   "hooks": {
     "SessionStart": [
       {
@@ -8,6 +64,17 @@
           {
             "type": "command",
             "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/tools/hooks/guard-bash.ts"
           }
         ]
       }

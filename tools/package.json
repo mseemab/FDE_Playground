@@ -6,7 +6,11 @@
   "scripts": {
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "check:rls": "tsx checks/rls.ts",
+    "check:agents-md": "tsx checks/agents-md.ts",
+    "check:drift": "tsx checks/template-drift.ts",
+    "check:repo": "pnpm check:rls && pnpm check:agents-md && pnpm check:drift"
   },
   "devDependencies": {
     "@factory/config": "workspace:*",

@@ -13,9 +13,10 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "test:e2e": "turbo run test:e2e",
-    "check": "turbo run lint typecheck test && pnpm check:rls",
-    "check:affected": "TURBO_SCM_BASE=${TURBO_SCM_BASE:-origin/main} turbo run lint typecheck test --affected && pnpm check:rls",
-    "check:rls": "pnpm --filter @factory/tools exec tsx checks/rls.ts",
+    "check": "turbo run lint typecheck test && pnpm check:repo",
+    "check:affected": "TURBO_SCM_BASE=${TURBO_SCM_BASE:-origin/main} turbo run lint typecheck test --affected && pnpm check:repo",
+    "check:repo": "pnpm --filter @factory/tools check:repo",
+    "check:rls": "pnpm --filter @factory/tools check:rls",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "new-project": "pnpm --filter @factory/tools exec tsx new-project.ts"
