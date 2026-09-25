@@ -1,0 +1,34 @@
+{
+  "name": "@factory/analytics",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./client": "./src/client.tsx",
+    "./server": "./src/server.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "posthog-js": "1.434.11",
+    "posthog-node": "5.53.0",
+    "server-only": "0.0.1",
+    "zod": "4.6.5"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@factory/config": "workspace:*",
+    "@types/node": "24.x",
+    "@types/react": "19.3.0",
+    "eslint": "10.11.0",
+    "react": "19.3.0",
+    "typescript": "6.0.3",
+    "vitest": "5.0.1"
+  }
+}

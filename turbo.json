@@ -2,13 +2,18 @@
   "$schema": "https://turborepo.com/schema.json",
   "ui": "stream",
   "globalDependencies": [".nvmrc", "pnpm-workspace.yaml"],
-  "remoteCache": { "enabled": false },
-  "futureFlags": { "githubActionsRemoteBaseRefFallback": true },
+  "remoteCache": {
+    "enabled": false
+  },
+  "futureFlags": {
+    "githubActionsRemoteBaseRefFallback": true
+  },
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env.example"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": ["NEXT_PUBLIC_*", "VERCEL_ENV"]
     },
     "lint": {
       "dependsOn": ["^build"]
@@ -21,7 +26,8 @@
     },
     "test:e2e": {
       "dependsOn": ["build"],
-      "outputs": ["playwright-report/**", "test-results/**"]
+      "outputs": ["playwright-report/**", "test-results/**"],
+      "passThroughEnv": ["CI", "E2E_PORT", "PLAYWRIGHT_*"]
     },
     "dev": {
       "cache": false,

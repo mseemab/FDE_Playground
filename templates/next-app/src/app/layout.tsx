@@ -1,0 +1,27 @@
+import { AnalyticsProvider } from "@factory/analytics/client";
+import type { Metadata } from "next";
+import type { ReactNode } from "react";
+import { analytics } from "@/analytics";
+import { env } from "@/env";
+import "./globals.css";
+
+export const metadata: Metadata = {
+  title: "Template Next App",
+  description: "Coming soon.",
+};
+
+export default function RootLayout({ children }: { children: ReactNode }) {
+  return (
+    <html lang="en">
+      <body className="min-h-dvh antialiased">
+        <AnalyticsProvider
+          app={analytics.app}
+          apiKey={env.NEXT_PUBLIC_POSTHOG_KEY}
+          apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}
+        >
+          {children}
+        </AnalyticsProvider>
+      </body>
+    </html>
+  );
+}

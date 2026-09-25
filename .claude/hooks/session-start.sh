@@ -37,6 +37,11 @@ if [ -n "${CLAUDE_ENV_FILE:-}" ]; then
     echo 'export PATH="/usr/local/bin:$PATH"'
     echo 'export SUPABASE_INTERNAL_IMAGE_REGISTRY=docker.io'
     echo 'export TURBO_TELEMETRY_DISABLED=1'
+    echo 'export NEXT_TELEMETRY_DISABLED=1'
+    # Playwright: use the VM's preinstalled Chromium instead of downloading one.
+    if [ -x /opt/pw-browsers/chromium ]; then
+      echo 'export PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/opt/pw-browsers/chromium'
+    fi
   } >> "$CLAUDE_ENV_FILE"
 fi
 
