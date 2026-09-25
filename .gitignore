@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+
+# env files: only .env.example is committed
+.env*
+!.env.example
+
+# build and tool output
+.next/
+out/
+dist/
+.turbo/
+*.tsbuildinfo
+next-env.d.ts
+coverage/
+playwright-report/
+test-results/
+blob-report/
+
+# supabase local state
+supabase/.branches/
+supabase/.temp/
+
+# os / editor
+.DS_Store
+*.log

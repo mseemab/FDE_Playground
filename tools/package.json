@@ -1,0 +1,17 @@
+{
+  "name": "@factory/tools",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@factory/config": "workspace:*",
+    "@types/node": "24.x",
+    "eslint": "10.11.0",
+    "tsx": "4.23.15",
+    "typescript": "6.0.3"
+  }
+}

@@ -1,0 +1,14 @@
+packages:
+  - apps/*
+  - packages/*
+  - templates/*
+  - tools
+
+# Keep pnpm's strict, isolated node_modules: a package can only import what its own
+# package.json declares. Never add hoisting settings to work around a missing dependency.
+engineStrict: true
+
+# Dependencies allowed to run install scripts. Review before adding anything here.
+allowBuilds:
+  esbuild: true # native binary download (used by tsx/vite)
+  unrs-resolver: true # native resolver binding (used by eslint-import-resolver-typescript)
