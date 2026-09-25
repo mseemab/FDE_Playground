@@ -8,7 +8,8 @@ argument-hint: "<slug> <table_name>"
 
 ## Steps
 
-1. **Migration:** from `apps/<slug>`: `pnpm dlx supabase migration new <verb>_<table>`.
+1. **Migration:** from `apps/<slug>`: `pnpm exec supabase migration new <verb>_<table> < /dev/null`
+   (without `< /dev/null` it waits for SQL on stdin).
    Never edit a migration that has been merged; add a new one.
 2. **Write the SQL** with RLS in the same migration:
 
@@ -31,10 +32,11 @@ argument-hint: "<slug> <table_name>"
    Rules: plural snake_case names; `user_id` + owner-only policies for user data; explicit
    policies per operation; never disable RLS; never `using (true)` on user data.
 
-3. **Apply locally:** `pnpm dlx supabase db reset` (replays all migrations on the local stack).
+3. **Apply locally:** `pnpm --filter <slug> db:reset` (replays all migrations on the local stack).
 4. **Regenerate types:** `pnpm --filter <slug> types:gen`; use `Tables<"pantry_items">` in code.
-5. **Test:** a unit test for the Zod schema that guards inserts, and, when the local stack is
-   running, an RLS test proving user A can't read user B's rows.
+5. **Test:** a unit test for the Zod schema that guards inserts, and RLS tests in
+   `supabase/tests/` (`pnpm --filter <slug> test:db`) proving user A can't read, insert as, or
+   update user B's rows (see `apps/pantry-pal/supabase/tests/rls.test.ts`).
 6. **Checks:** `pnpm check:rls` then `pnpm check:affected`. The PR gets a "risky paths" warning
    comment. Tick "Migrations" and "Data" in the PR template.
 

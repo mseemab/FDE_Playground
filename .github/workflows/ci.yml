@@ -109,3 +109,59 @@ jobs:
             templates/*/test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  db:
+    name: Database tests (RLS + signed-in e2e)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v6
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Find affected apps with a backend
+        id: apps
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          affected=""
+          if [ "$EVENT" = "pull_request" ]; then
+            export TURBO_SCM_BASE="origin/$BASE_REF"
+            affected="--affected"
+          fi
+          dirs=$(pnpm exec turbo run test:db $affected --dry=json \
+            | jq -r '[.tasks[] | select(.task == "test:db" and .command != "<NONEXISTENT>") | .directory] | join(" ")')
+          echo "dirs=$dirs" >> "$GITHUB_OUTPUT"
+          echo "Apps to test: ${dirs:-none}"
+
+      - name: Install Playwright Chromium
+        if: steps.apps.outputs.dirs != ''
+        run: pnpm --filter @apps/template-next-app exec playwright install --with-deps chromium
+
+      - name: Run database tests per app
+        if: steps.apps.outputs.dirs != ''
+        env:
+          DIRS: ${{ steps.apps.outputs.dirs }}
+        run: |
+          for dir in $DIRS; do
+            echo "::group::$dir"
+            (
+              cd "$dir"
+              pnpm exec supabase start -x studio,imgproxy,edge-runtime,realtime,storage-api,mailpit,vector,logflare,supavisor
+              trap 'pnpm exec supabase stop --no-backup' EXIT
+              pnpm test:db
+              pnpm build
+              pnpm test:e2e:db
+            )
+            echo "::endgroup::"
+          done

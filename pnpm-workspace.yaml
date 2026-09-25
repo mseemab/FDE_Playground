@@ -13,3 +13,4 @@ allowBuilds:
   esbuild: true # native binary download (used by tsx/vite)
   unrs-resolver: true # native resolver binding (used by eslint-import-resolver-typescript)
   core-js: false # postinstall only prints a funding banner (via posthog-js)
+  supabase: true # downloads the Supabase CLI binary (apps with a backend)

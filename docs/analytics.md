@@ -25,14 +25,15 @@ One PostHog project serves every app. Events are separated by the `app` property
 
 ### pantry-pal
 
-Brief: [briefs/pantry-pal.md](briefs/pantry-pal.md). Registered in `apps/pantry-pal/src/analytics.ts`
-as features ship (Phase 6 of the factory setup adds the backend-driven ones).
+Brief: [briefs/pantry-pal.md](briefs/pantry-pal.md). Registered in `apps/pantry-pal/src/analytics.ts`.
+Server-side events use the Supabase user id as `distinctId`; the browser is identified with the
+same id, so client and server events join into one person.
 
-| Event                  | When                               | Properties                                              |
-| ---------------------- | ---------------------------------- | ------------------------------------------------------- |
-| `waitlist_joined`      | Landing page signup succeeds       | —                                                       |
-| `user_signed_in`       | Google sign-in completes           | `first_time: boolean`                                   |
-| `item_added`           | A pantry item is saved             | `has_expiry: boolean`, `days_to_expiry: number \| null` |
-| `item_used`            | An item is marked as used          | `days_before_expiry: number \| null`                    |
-| `item_discarded`       | An item is marked as thrown away   | `days_after_expiry: number \| null`                     |
-| `expiring_list_viewed` | The "expiring soon" list is opened | `item_count: number`                                    |
+| Event                  | When                                                      | Properties                                              | Sent from                  |
+| ---------------------- | --------------------------------------------------------- | ------------------------------------------------------- | -------------------------- |
+| `waitlist_joined`      | Landing page signup succeeds                              | —                                                       | client (`WaitlistForm`)    |
+| `user_signed_in`       | Google sign-in completes                                  | `first_time: boolean`                                   | server (`/auth/callback`)  |
+| `item_added`           | A pantry item is saved                                    | `has_expiry: boolean`, `days_to_expiry: number \| null` | server (`addItem` action)  |
+| `item_used`            | An item is marked as used                                 | `days_before_expiry: number \| null`                    | server (`markItem` action) |
+| `item_discarded`       | An item is marked as thrown away                          | `days_after_expiry: number \| null`                     | server (`markItem` action) |
+| `expiring_list_viewed` | The pantry page (with its "expiring soon" list) is viewed | `item_count: number`                                    | client (`TrackOnMount`)    |

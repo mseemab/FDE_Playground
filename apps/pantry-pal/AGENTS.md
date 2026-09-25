@@ -21,6 +21,8 @@ App-specific context. Factory-wide rules live in the root `AGENTS.md`; read thos
 
 ## App-specific notes
 
-- Backend: none yet.
-- Analytics events: `waitlist_joined`.
-- Anything unusual about this app goes here (keep this file ~30 lines).
+- Backend: Supabase (local: `pnpm --filter pantry-pal db:start`; types: `types:gen`).
+  Table `pantry_items` (owner-only RLS, no deletes; items are marked used/discarded).
+- Auth: Google only. `/pantry` is protected by `src/proxy.ts`; use `requireUser()` in pages/actions.
+- DB tests (stack running): `test:db` (RLS) and `test:e2e:db` (signed-in browser flow).
+- Analytics: all brief events registered; item events are captured server-side in actions.

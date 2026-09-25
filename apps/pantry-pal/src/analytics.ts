@@ -6,5 +6,12 @@ import { defineAnalytics } from "@factory/analytics";
  */
 export const analytics = defineAnalytics({
   app: "pantry-pal",
-  events: ["waitlist_joined"],
+  events: [
+    "waitlist_joined",
+    "user_signed_in",
+    "item_added",
+    "item_used",
+    "item_discarded",
+    "expiring_list_viewed",
+  ],
 });

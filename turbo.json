@@ -32,6 +32,14 @@
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "test:db": {
+      "cache": false
+    },
+    "test:e2e:db": {
+      "dependsOn": ["build"],
+      "cache": false,
+      "passThroughEnv": ["CI", "E2E_PORT", "PLAYWRIGHT_*"]
     }
   }
 }
