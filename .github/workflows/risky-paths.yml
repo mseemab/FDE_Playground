@@ -1,0 +1,64 @@
+name: Risky paths
+
+# Posts (or updates) a single warning comment when a PR touches paths that deserve a careful
+# human review. Never fails the PR.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  warn:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    continue-on-error: true
+    steps:
+      - uses: actions/github-script@v9
+        with:
+          script: |
+            const MARKER = "<!-- factory:risky-paths -->";
+            const RULES = [
+              { pattern: /^apps\/[^/]+\/supabase\/migrations\//, label: "Database migrations", why: "schema changes are hard to undo; check RLS policies and data backfills" },
+              { pattern: /^packages\/supabase\//, label: "Shared Supabase package", why: "auth and data access for every app with a backend" },
+              { pattern: /^packages\/config\//, label: "Shared lint/TypeScript/Prettier config", why: "can weaken checks for every package" },
+              { pattern: /^\.claude\/settings\.json$/, label: "Agent settings", why: "controls what agents may do without asking" },
+            ];
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.payload.pull_request.number;
+            const files = await github.paginate(github.rest.pulls.listFiles, { owner, repo, pull_number: issue_number, per_page: 100 });
+
+            const hits = RULES.map((rule) => ({
+              ...rule,
+              files: files.map((f) => f.filename).filter((name) => rule.pattern.test(name)),
+            })).filter((rule) => rule.files.length > 0);
+
+            const comments = await github.paginate(github.rest.issues.listComments, { owner, repo, issue_number, per_page: 100 });
+            const existing = comments.find((c) => c.body?.includes(MARKER));
+
+            if (hits.length === 0) {
+              if (existing) await github.rest.issues.deleteComment({ owner, repo, comment_id: existing.id });
+              return;
+            }
+
+            const lines = hits.map((h) =>
+              `- **${h.label}** — ${h.why}\n` + h.files.slice(0, 10).map((f) => `  - \`${f}\``).join("\n") +
+              (h.files.length > 10 ? `\n  - …and ${h.files.length - 10} more` : ""),
+            );
+            const body = [
+              MARKER,
+              "### ⚠️ This PR touches high-risk paths",
+              "",
+              "This is a warning, not a failure. Review these changes carefully before merging:",
+              "",
+              ...lines,
+            ].join("\n");
+
+            if (existing) {
+              await github.rest.issues.updateComment({ owner, repo, comment_id: existing.id, body });
+            } else {
+              await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            }

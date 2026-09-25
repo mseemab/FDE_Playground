@@ -1,0 +1,111 @@
+name: CI
+
+# PRs: lint/typecheck/test, build and Playwright smoke tests for affected packages only.
+# Push to main: the full check across the workspace.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CI: true
+  TURBO_TELEMETRY_DISABLED: 1
+  NEXT_TELEMETRY_DISABLED: 1
+
+jobs:
+  check:
+    name: Check, build, e2e
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # --affected needs the history back to the base branch
+
+      - uses: pnpm/action-setup@v6 # version from package.json#packageManager
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Restore turbo cache
+        uses: actions/cache@v6
+        with:
+          path: .turbo/cache
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-
+
+      - name: Select scope
+        id: scope
+        env:
+          EVENT: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          if [ "$EVENT" = "pull_request" ]; then
+            echo "TURBO_SCM_BASE=origin/$BASE_REF" >> "$GITHUB_ENV"
+            echo "affected=--affected" >> "$GITHUB_OUTPUT"
+          else
+            echo "affected=" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Lint, typecheck, unit tests, RLS
+        run: pnpm ${{ steps.scope.outputs.affected && 'check:affected' || 'check' }}
+
+      - name: Build
+        run: pnpm exec turbo run build ${{ steps.scope.outputs.affected }}
+
+      - name: Find affected smoke tests
+        id: e2e
+        run: |
+          count=$(pnpm exec turbo run test:e2e ${{ steps.scope.outputs.affected }} --dry=json \
+            | jq '[.tasks[] | select(.task == "test:e2e" and .command != "<NONEXISTENT>")] | length')
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          echo "Smoke test suites to run: $count"
+
+      - name: Get Playwright version
+        if: steps.e2e.outputs.count != '0'
+        id: pw
+        run: echo "version=$(pnpm --filter @apps/template-next-app exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        if: steps.e2e.outputs.count != '0'
+        id: pw-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
+      - name: Install Playwright Chromium
+        if: steps.e2e.outputs.count != '0' && steps.pw-cache.outputs.cache-hit != 'true'
+        run: pnpm --filter @apps/template-next-app exec playwright install --with-deps chromium
+
+      - name: Install Playwright system deps
+        if: steps.e2e.outputs.count != '0' && steps.pw-cache.outputs.cache-hit == 'true'
+        run: pnpm --filter @apps/template-next-app exec playwright install-deps chromium
+
+      - name: Playwright smoke tests
+        if: steps.e2e.outputs.count != '0'
+        run: pnpm exec turbo run test:e2e ${{ steps.scope.outputs.affected }}
+
+      - name: Upload Playwright reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: |
+            apps/*/playwright-report/
+            apps/*/test-results/
+            templates/*/playwright-report/
+            templates/*/test-results/
+          if-no-files-found: ignore
+          retention-days: 7

@@ -126,6 +126,8 @@ Next steps:
   3. Manual setup (only the human can do these):
      - Vercel: New Project → import this repo → Root Directory: apps/${slug}
        (the "Include files outside the root directory" option must stay enabled).
+       Build skipping is preconfigured in apps/${slug}/vercel.json (turbo-ignore): Vercel only
+       builds when this app or a package it depends on changed.
      - Vercel env vars: NEXT_PUBLIC_POSTHOG_KEY, NEXT_PUBLIC_POSTHOG_HOST
        (see apps/${slug}/.env.example).
      - Domain: add it under the Vercel project's Settings → Domains.
